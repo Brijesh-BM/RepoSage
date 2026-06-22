@@ -27,6 +27,7 @@ async def write_step(db, job_id: str, phase: str, message: str, status: str, pro
     await db.commit()
 
 async def run_agent_job(job_id: str):
+    print(f"RUN_AGENT_JOB STARTED: {job_id}")
     logger.info(f"Starting agent job {job_id}")
     
     async with SessionLocal() as db:

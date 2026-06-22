@@ -27,6 +27,7 @@ async def create_job(
     
     # Start the agent orchestrator as a FastAPI BackgroundTask
     background_tasks.add_task(run_agent_job, db_job.id)
+    print(f"Background task scheduled for {db_job.id}")
     
     return db_job
 
