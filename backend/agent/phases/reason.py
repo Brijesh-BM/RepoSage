@@ -147,8 +147,16 @@ Recent Pull Requests (including closed/merged):
         schema=SubStep1Output,
         system_instruction=system_instruction_step1
     )
-    suspected_findings = sub_step1_res.findings
+    step = AgentStep(
+    job_id=job_id,
+    phase="reason",
+    message=f"Found {len(suspected_findings)} issues. Starting verification...",
+    status="running",
+    progress=0.50
+)
+    suspected_findings = sub_step1_res.findings[:3]
     
+    print(f"REASON PHASE: Gemini returned {len(suspected_findings)} findings")
     # Add a new agent_step log entry between sub-step 1 and sub-step 2
     try:
         async with SessionLocal() as db:
@@ -182,11 +190,16 @@ Recent Pull Requests (including closed/merged):
     )
     
     for finding in suspected_findings:
+        print(f"VERIFYING: {finding.title}")
+
         # Validate file paths using our helper
-        finding.suspected_files = validate_file_paths(finding.suspected_files, repo_data["file_tree"])
+        finding.suspected_files = validate_file_paths(
+            finding.suspected_files,
+            repo_data["file_tree"]
+        )
         if not finding.suspected_files:
             finding.suspected_files = ["(file path could not be confirmed)"]
-            
+
         file_contents = {}
         any_file_read = False
         for file_path in finding.suspected_files:
@@ -195,13 +208,13 @@ Recent Pull Requests (including closed/merged):
                 if content:
                     file_contents[file_path] = content
                     any_file_read = True
-                    
+
         # Verification call
         if any_file_read:
             files_context = ""
             for path, content in file_contents.items():
                 files_context += f"=== FILE: {path} ===\n{content}\n\n"
-                
+
             prompt_step2 = f"""
 Given the actual code below, does this finding hold?
 
@@ -218,15 +231,15 @@ Actual Code Files:
                     schema=VerificationResponse,
                     system_instruction=system_instruction_step2
                 )
-                
+
                 status = verification.status.lower()
                 if status == "not_found":
                     continue
-                    
+
                 root_cause = verification.root_cause or finding.description
                 suggested_fix = verification.suggested_fix or "Please review code manually."
                 confidence = verification.confidence if verification.confidence is not None else 1.0
-                
+
                 # Apply confidence cap rules (Rule 1 & Rule 2)
                 if status == "confirmed":
                     confidence = min(confidence, 0.95)
@@ -247,7 +260,7 @@ Actual Code Files:
             suggested_fix = "Please verify the source code manually."
             confidence = 0.35
             note = "Confidence limited — source file could not be retrieved for verification"
-            
+
         # Add to appropriate list based on category
         if finding.finding_type == "security_risk":
             verified_security_risks.append(
@@ -275,7 +288,7 @@ Actual Code Files:
                     note=note
                 )
             )
-            
+
     # Sub-step 3: Self-Critique
     system_instruction_critique = (
         "You are a senior principal engineer performing a final quality "
