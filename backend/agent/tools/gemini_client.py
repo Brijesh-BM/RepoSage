@@ -27,7 +27,7 @@ class GeminiClient:
 
         # Using gemini-2.5-flash which is the state-of-the-art model for tasks requiring high performance and speed
         model = genai.GenerativeModel(
-            model_name="gemini-2.5-flash",
+            model_name="gemini-2.0-flash",
             system_instruction=system_instruction
         )
         
