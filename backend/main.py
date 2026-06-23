@@ -12,6 +12,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from config import settings
 from db.session import engine, Base
+from models.report import Report
 
 # Import routers after they are created
 from routers import jobs, reports, ws
