@@ -1,11 +1,11 @@
 import json
 from typing import Any
 from sqlalchemy.ext.asyncio import AsyncSession
-from backend.models.report import Report
-from backend.agent.phases.understand import UnderstandOutput
-from backend.agent.phases.act import ActOutput
-from backend.models.job import Job
-from backend.models.repo_cache import RepoCache
+from models.report import Report
+from agent.phases.understand import UnderstandOutput
+from agent.phases.act import ActOutput
+from models.job import Job
+from models.repo_cache import RepoCache
 from sqlalchemy.future import select
 
 def generate_positive_findings(repo_data: dict, understand_data: UnderstandOutput) -> list[dict]:

@@ -1,6 +1,6 @@
 from datetime import datetime
 from sqlalchemy import Column, String, Integer, Float, DateTime, ForeignKey
-from backend.db.session import Base
+from db.session import Base
 
 class AgentStep(Base):
     __tablename__ = "agent_steps"

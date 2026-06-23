@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from sqlalchemy import Column, String, Integer, DateTime, Text, JSON
-from backend.db.session import Base
+from db.session import Base
 
 class RepoCache(Base):
     __tablename__ = "repo_cache"

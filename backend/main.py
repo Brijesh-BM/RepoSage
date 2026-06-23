@@ -10,11 +10,11 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from backend.config import settings
-from backend.db.session import engine, Base
+from config import settings
+from db.session import engine, Base
 
 # Import routers after they are created
-from backend.routers import jobs, reports, ws
+from routers import jobs, reports, ws
 
 app = FastAPI(
     title="RepoSage API",

@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from backend.db.session import get_db
-from backend.models.job import Job
-from backend.schemas.job import JobCreate, JobResponse
+from db.session import get_db
+from models.job import Job
+from schemas.job import JobCreate, JobResponse
 
 # The orchestrator will be implemented next
-from backend.agent.orchestrator import run_agent_job
+from agent.orchestrator import run_agent_job
 
 router = APIRouter()
 

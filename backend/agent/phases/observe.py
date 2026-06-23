@@ -1,7 +1,7 @@
 from datetime import datetime
 from sqlalchemy.future import select
-from backend.models.repo_cache import RepoCache
-from backend.agent.tools.github_client import GitHubClient
+from models.repo_cache import RepoCache
+from agent.tools.github_client import GitHubClient
 
 async def run_observe(repo_url: str, github_token: str, db) -> dict:
     # Check if a cache entry exists and is not expired

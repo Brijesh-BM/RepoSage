@@ -1,1 +1,1 @@
-from backend.routers import jobs, reports, ws
+from routers import jobs, reports, ws

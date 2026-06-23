@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from typing import List
-from backend.agent.tools.gemini_client import GeminiClient
-from backend.agent.tools.github_client import GitHubClient
+from agent.tools.gemini_client import GeminiClient
+from agent.tools.github_client import GitHubClient
 
 class UnderstandOutput(BaseModel):
     tech_stack: List[str]

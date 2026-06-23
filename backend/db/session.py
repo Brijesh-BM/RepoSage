@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.orm import declarative_base
-from backend.config import settings
+from config import settings
 
 # For local development with SQLite, make sure sqlite+aiosqlite is used.
 # If DATABASE_URL is standard sqlite:///, swap to sqlite+aiosqlite:///.

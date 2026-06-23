@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 from sqlalchemy import Column, String, Integer, DateTime, ForeignKey, JSON
-from backend.db.session import Base
+from db.session import Base
 
 class Report(Base):
     __tablename__ = "reports"

@@ -4,7 +4,7 @@ import logging
 from typing import Dict, List, Any, Optional
 from github import Github
 from github.GithubException import GithubException, RateLimitExceededException
-from backend.config import settings
+from config import settings
 
 logger = logging.getLogger(__name__)
 

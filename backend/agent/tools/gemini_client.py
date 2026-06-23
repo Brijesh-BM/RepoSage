@@ -2,7 +2,7 @@ import asyncio
 import google.generativeai as genai
 from typing import Type, TypeVar, Optional
 from pydantic import BaseModel
-from backend.config import settings
+from config import settings
 
 T = TypeVar("T", bound=BaseModel)
 

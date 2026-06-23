@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 from sqlalchemy import Column, String, DateTime
-from backend.db.session import Base
+from db.session import Base
 
 class Job(Base):
     __tablename__ = "jobs"

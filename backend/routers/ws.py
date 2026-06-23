@@ -1,9 +1,9 @@
 import asyncio
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from sqlalchemy.future import select
-from backend.db.session import SessionLocal
-from backend.models.agent_step import AgentStep
-from backend.models.job import Job
+from db.session import SessionLocal
+from models.agent_step import AgentStep
+from models.job import Job
 
 router = APIRouter()
 

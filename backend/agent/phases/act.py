@@ -1,8 +1,8 @@
 from pydantic import BaseModel
 from typing import List, Dict, Optional
-from backend.agent.tools.github_client import GitHubClient
-from backend.agent.tools.gemini_client import GeminiClient
-from backend.agent.phases.reason import ReasonOutput
+from agent.tools.github_client import GitHubClient
+from agent.tools.gemini_client import GeminiClient
+from agent.phases.reason import ReasonOutput
 
 class ActCriticalIssue(BaseModel):
     title: str
@@ -63,7 +63,7 @@ async def run_act(
     fetched_files: Dict[str, str] = {}
     path_list = list(unique_paths)[:4]  # fetch top 4 files maximum
     
-    from backend.agent.tools.github_client import parse_repo_url
+    from agent.tools.github_client import parse_repo_url
     owner, repo_name = parse_repo_url(repo_url)
     client.repo = client.client.get_repo(f"{owner}/{repo_name}")
     

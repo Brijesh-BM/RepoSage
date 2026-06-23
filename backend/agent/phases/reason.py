@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from typing import List, Optional
-from backend.agent.tools.gemini_client import GeminiClient
+from agent.tools.gemini_client import GeminiClient
 
 def validate_file_paths(file_paths: list[str], 
                         repo_file_tree: list[str]) -> list[str]:
@@ -69,9 +69,9 @@ async def run_reason(
     repo_url: str,
     github_token: Optional[str] = None
 ) -> ReasonOutput:
-    from backend.agent.tools.github_client import GitHubClient, parse_repo_url
-    from backend.db.session import SessionLocal
-    from backend.models.agent_step import AgentStep
+    from agent.tools.github_client import GitHubClient, parse_repo_url
+    from db.session import SessionLocal
+    from models.agent_step import AgentStep
     
     tech_stack_str = ", ".join(tech_stack)
     

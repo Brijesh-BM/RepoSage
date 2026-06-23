@@ -1,17 +1,17 @@
 import logging
 import traceback
 from sqlalchemy.future import select
-from backend.db.session import SessionLocal
-from backend.models.job import Job
-from backend.models.agent_step import AgentStep
+from db.session import SessionLocal
+from models.job import Job
+from models.agent_step import AgentStep
 
 # Import phases
-from backend.agent.phases.observe import run_observe
-from backend.agent.phases.understand import run_understand
-from backend.agent.phases.reason import run_reason
-from backend.agent.phases.act import run_act
-from backend.agent.phases.report import run_report
-from backend.agent.tools.github_client import GitHubClient, parse_repo_url
+from agent.phases.observe import run_observe
+from agent.phases.understand import run_understand
+from agent.phases.reason import run_reason
+from agent.phases.act import run_act
+from agent.phases.report import run_report
+from agent.tools.github_client import GitHubClient, parse_repo_url
 
 logger = logging.getLogger(__name__)
 
@@ -51,22 +51,22 @@ async def run_agent_job(job_id: str):
             logger.warning(f"Failed to pre-initialize repo object on GitHubClient: {e}")
         
         try:
-          print("PHASE 1 START")
+            print("PHASE 1 START")
 
-await write_step(
-    db,
-    job_id,
-    "observe",
-    "Accessing GitHub repository and reading metadata...",
-    "running",
-    0.1
-)
+            await write_step(
+                db,
+                job_id,
+                "observe",
+                "Accessing GitHub repository and reading metadata...",
+                "running",
+                0.1
+            )
 
-print("WRITE STEP SUCCESS")
+            print("WRITE STEP SUCCESS")
 
-repo_data = await run_observe(job.repo_url, job.github_token, db)
+            repo_data = await run_observe(job.repo_url, job.github_token, db)
 
-print("OBSERVE SUCCESS")
+            print("OBSERVE SUCCESS")
             # === PHASE 2: UNDERSTAND ===
             await write_step(db, job_id, "understand", "Analyzing repository architecture and tech stack...", "running", 0.3)
             understand_data = await run_understand(repo_data, github_client)
