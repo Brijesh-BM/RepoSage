@@ -67,7 +67,7 @@ class GeminiClient:
         
         # Gemini fallback
         if not self.api_key:
-            raise Exception("No API keys available. Set GROQ_API_KEY or GEMINI_API_KEY.")
+            raise Exception("No API keys available.")
         
         genai.configure(api_key=self.api_key)
         model = genai.GenerativeModel(
@@ -76,14 +76,16 @@ class GeminiClient:
         )
         config = genai.GenerationConfig(
             response_mime_type="application/json",
-            response_schema=schema,
             temperature=0.1
         )
+        
+        full_prompt = prompt + f"\n\nRespond ONLY with a valid JSON object matching this schema: {schema.model_json_schema()}"
+        
         loop = asyncio.get_event_loop()
         response = await asyncio.wait_for(
             loop.run_in_executor(
                 None,
-                lambda: model.generate_content(prompt, generation_config=config)
+                lambda: model.generate_content(full_prompt, generation_config=config)
             ),
             timeout=120.0
         )
