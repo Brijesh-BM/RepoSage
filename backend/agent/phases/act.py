@@ -63,10 +63,13 @@ async def run_act(
     fetched_files: Dict[str, str] = {}
     path_list = list(unique_paths)[:4]  # fetch top 4 files maximum
     
+    from backend.agent.tools.github_client import parse_repo_url
+    owner, repo_name = parse_repo_url(repo_url)
+    client.repo = client.client.get_repo(f"{owner}/{repo_name}")
+    
     for path in path_list:
-        content = client.fetch_file_content(repo_url, path)
-        # Cap file content to first 8000 characters to prevent overloading context
-        fetched_files[path] = content[:8000]
+        content = await client.get_file_content(path)
+        fetched_files[path] = content[:8000] if content else ""
 
     # Format file contents for prompt
     files_context = ""
@@ -121,7 +124,7 @@ Security Risks:
 {risks_context if risks_context else "No security risks."}
 """
 
-    output = gemini.generate_structured(
+    output = await gemini.generate_structured(
         prompt=prompt,
         schema=ActOutput,
         system_instruction=system_instruction

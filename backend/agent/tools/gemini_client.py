@@ -1,3 +1,4 @@
+import asyncio
 import google.generativeai as genai
 from typing import Type, TypeVar, Optional
 from pydantic import BaseModel
@@ -11,7 +12,7 @@ class GeminiClient:
         if self.api_key:
             genai.configure(api_key=self.api_key)
 
-    def generate_structured(
+    async def generate_structured(
         self,
         prompt: str,
         schema: Type[T],
@@ -36,9 +37,16 @@ class GeminiClient:
             temperature=0.1
         )
         
-        response = model.generate_content(
-            prompt,
-            generation_config=config
+        loop = asyncio.get_event_loop()
+        response = await asyncio.wait_for(
+            loop.run_in_executor(
+                None,
+                lambda: model.generate_content(
+                    prompt,
+                    generation_config=config
+                )
+            ),
+            timeout=90.0
         )
         
         text_content = response.text

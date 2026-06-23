@@ -51,11 +51,22 @@ async def run_agent_job(job_id: str):
             logger.warning(f"Failed to pre-initialize repo object on GitHubClient: {e}")
         
         try:
-            # === PHASE 1: OBSERVE ===
-            await write_step(db, job_id, "observe", "Accessing GitHub repository and reading metadata...", "running", 0.1)
-            repo_data = await run_observe(job.repo_url, job.github_token, db)
-            await write_step(db, job_id, "observe", f"Successfully analyzed repository tree and issues. Found {len(repo_data.get('file_tree', []))} files.", "done", 0.2)
-            
+          print("PHASE 1 START")
+
+await write_step(
+    db,
+    job_id,
+    "observe",
+    "Accessing GitHub repository and reading metadata...",
+    "running",
+    0.1
+)
+
+print("WRITE STEP SUCCESS")
+
+repo_data = await run_observe(job.repo_url, job.github_token, db)
+
+print("OBSERVE SUCCESS")
             # === PHASE 2: UNDERSTAND ===
             await write_step(db, job_id, "understand", "Analyzing repository architecture and tech stack...", "running", 0.3)
             understand_data = await run_understand(repo_data, github_client)

@@ -142,18 +142,11 @@ Recent Pull Requests (including closed/merged):
 """
 
     gemini_client = GeminiClient()
-    sub_step1_res = gemini_client.generate_structured(
+    sub_step1_res = await gemini_client.generate_structured(
         prompt=prompt_step1,
         schema=SubStep1Output,
         system_instruction=system_instruction_step1
     )
-    step = AgentStep(
-    job_id=job_id,
-    phase="reason",
-    message=f"Found {len(suspected_findings)} issues. Starting verification...",
-    status="running",
-    progress=0.50
-)
     suspected_findings = sub_step1_res.findings[:3]
     
     print(f"REASON PHASE: Gemini returned {len(suspected_findings)} findings")
@@ -226,7 +219,7 @@ Actual Code Files:
 {files_context}
 """
             try:
-                verification = gemini_client.generate_structured(
+                verification = await gemini_client.generate_structured(
                     prompt=prompt_step2,
                     schema=VerificationResponse,
                     system_instruction=system_instruction_step2
@@ -332,7 +325,7 @@ Is this finding specific and grounded in this codebase,
 or is it generic advice?
 """
         try:
-            critique = gemini_client.generate_structured(
+            critique = await gemini_client.generate_structured(
                 prompt=critique_prompt,
                 schema=CritiqueResponse,
                 system_instruction=system_instruction_critique

@@ -103,7 +103,7 @@ README:
 {readme_str}
 """
     
-    output = client.generate_structured(
+    output = await client.generate_structured(
         prompt=prompt,
         schema=UnderstandOutput,
         system_instruction=system_instruction

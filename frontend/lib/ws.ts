@@ -28,6 +28,7 @@ export function useAgentWebSocket(jobId: string | null) {
     ws.onmessage = (event) => {
       try {
         const stepData = JSON.parse(event.data);
+        if (stepData.type === 'ping') return;
         
         if (stepData.error) {
           setError(stepData.error);

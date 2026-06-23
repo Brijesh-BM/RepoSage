@@ -64,7 +64,11 @@ async def websocket_endpoint(websocket: WebSocket, job_id: str):
                             sent_step_ids.add(step.id)
                     break
             
-            await asyncio.sleep(0.5)
+            await asyncio.sleep(1.0)
+            try:
+                await websocket.send_json({"type": "ping"})
+            except Exception:
+                break
             
     except WebSocketDisconnect:
         pass

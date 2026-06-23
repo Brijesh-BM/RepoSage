@@ -26,7 +26,8 @@ async def create_job(
     await db.refresh(db_job)
     
     # Start the agent orchestrator as a FastAPI BackgroundTask
-    background_tasks.add_task(run_agent_job, db_job.id)
+    job_id = db_job.id
+    background_tasks.add_task(run_agent_job, job_id)
     print(f"Background task scheduled for {db_job.id}")
     
     return db_job
