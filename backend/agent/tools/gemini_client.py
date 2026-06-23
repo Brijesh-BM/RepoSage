@@ -21,6 +21,7 @@ class GeminiClient:
         system_instruction: Optional[str] = None
     ) -> T:
         import asyncio
+        print(f"DEBUG GEMINI CLIENT: GROQ_API_KEY set = {bool(settings.GROQ_API_KEY)}")
         
         # Try Groq first if key is available
         if settings.GROQ_API_KEY:
@@ -60,10 +61,9 @@ class GeminiClient:
                     raise Exception("Empty response from Groq")
                 return schema.model_validate_json(text_content)
             except Exception as e:
-                if "429" in str(e) or "413" in str(e) or "quota" in str(e).lower() or "rate_limit" in str(e).lower() or "too large" in str(e).lower() or "token" in str(e).lower():
-                    pass  # fall through to Gemini
-                else:
-                    raise e
+                print(f"DEBUG GROQ ERROR: {str(e)[:200]}")
+                # Fall through to Gemini for ANY Groq error
+                pass
         
         # Gemini fallback
         if not self.api_key:
