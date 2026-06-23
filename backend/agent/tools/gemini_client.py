@@ -29,6 +29,11 @@ class GeminiClient:
                     api_key=settings.GROQ_API_KEY,
                     base_url="https://api.groq.com/openai/v1"
                 )
+                # Truncate prompt to fit Groq TPM limit
+                max_prompt_chars = 24000  # ~6000 tokens, leaves room for schema
+                if len(prompt) > max_prompt_chars:
+                    prompt = prompt[:max_prompt_chars] + "\n\n[TRUNCATED FOR LENGTH]"
+
                 messages = []
                 if system_instruction:
                     messages.append({"role": "system", "content": system_instruction})
@@ -55,7 +60,7 @@ class GeminiClient:
                     raise Exception("Empty response from Groq")
                 return schema.model_validate_json(text_content)
             except Exception as e:
-                if "429" in str(e) or "quota" in str(e).lower():
+                if "429" in str(e) or "413" in str(e) or "quota" in str(e).lower() or "rate_limit" in str(e).lower() or "too large" in str(e).lower() or "token" in str(e).lower():
                     pass  # fall through to Gemini
                 else:
                     raise e
