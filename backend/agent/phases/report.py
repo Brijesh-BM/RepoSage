@@ -107,6 +107,8 @@ async def run_report(
     # 1. Fetch job to get repo_url
     job_result = await db.execute(select(Job).where(Job.id == job_id))
     job = job_result.scalars().first()
+    if not job:
+        raise ValueError(f"Job {job_id} not found")
     
     # Fetch cache entry using repo_url
     cache_result = await db.execute(select(RepoCache).where(RepoCache.repo_url == job.repo_url))

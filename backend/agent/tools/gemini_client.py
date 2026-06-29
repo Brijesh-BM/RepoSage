@@ -1,7 +1,10 @@
 import asyncio
 import json
+import logging
 from openai import OpenAI
 import google.generativeai as genai
+
+logger = logging.getLogger(__name__)
 from typing import Type, TypeVar, Optional
 from pydantic import BaseModel
 from config import settings
@@ -20,8 +23,7 @@ class GeminiClient:
         schema: Type[T],
         system_instruction: Optional[str] = None
     ) -> T:
-        import asyncio
-        print(f"DEBUG GEMINI CLIENT: GROQ_API_KEY set = {bool(settings.GROQ_API_KEY)}")
+        logger.debug(f"GROQ_API_KEY set = {bool(settings.GROQ_API_KEY)}")
         
         # Try Groq first if key is available
         if settings.GROQ_API_KEY:
@@ -61,7 +63,7 @@ class GeminiClient:
                     raise Exception("Empty response from Groq")
                 return schema.model_validate_json(text_content)
             except Exception as e:
-                print(f"DEBUG GROQ ERROR: {str(e)[:200]}")
+                logger.warning(f"Groq API error (falling back to Gemini): {str(e)[:200]}")
                 # Fall through to Gemini for ANY Groq error
                 pass
         

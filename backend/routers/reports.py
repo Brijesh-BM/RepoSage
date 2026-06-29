@@ -1,3 +1,4 @@
+import logging
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -5,12 +6,18 @@ from db.session import get_db
 from models.report import Report
 from schemas.report import ReportResponse
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 @router.get("/reports/{job_id}", response_model=ReportResponse)
 async def get_report(job_id: str, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Report).where(Report.job_id == job_id))
-    db_report = result.scalars().first()
+    try:
+        result = await db.execute(select(Report).where(Report.job_id == job_id))
+        db_report = result.scalars().first()
+    except Exception as e:
+        logger.error(f"Error retrieving report: {e}")
+        raise HTTPException(status_code=500, detail="Database error")
+        
     if not db_report:
         raise HTTPException(status_code=404, detail="Report not found for this job")
     

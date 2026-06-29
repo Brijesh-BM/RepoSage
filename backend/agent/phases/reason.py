@@ -1,6 +1,10 @@
+import asyncio
+import logging
 from pydantic import BaseModel
 from typing import List, Optional
 from agent.tools.gemini_client import GeminiClient
+
+logger = logging.getLogger(__name__)
 
 def validate_file_paths(file_paths: list[str], 
                         repo_file_tree: list[str]) -> list[str]:
@@ -149,7 +153,7 @@ Recent Pull Requests (including closed/merged):
     )
     suspected_findings = sub_step1_res.findings[:3]
     
-    print(f"REASON PHASE: Gemini returned {len(suspected_findings)} findings")
+    logger.info(f"Reason Phase: Gemini returned {len(suspected_findings)} suspected findings")
     # Add a new agent_step log entry between sub-step 1 and sub-step 2
     try:
         async with SessionLocal() as db:
@@ -168,7 +172,7 @@ Recent Pull Requests (including closed/merged):
     # Sub-step 2 (Verify)
     gh_client = GitHubClient(token=github_token)
     owner, repo_name = parse_repo_url(repo_url)
-    gh_client.repo = gh_client.client.get_repo(f"{owner}/{repo_name}")
+    gh_client.repo = await asyncio.to_thread(gh_client.client.get_repo, f"{owner}/{repo_name}")
     
     verified_critical_issues = []
     verified_security_risks = []
@@ -183,7 +187,7 @@ Recent Pull Requests (including closed/merged):
     )
     
     for finding in suspected_findings:
-        print(f"VERIFYING: {finding.title}")
+        logger.info(f"Verifying suspected finding: {finding.title}")
 
         # Validate file paths using our helper
         finding.suspected_files = validate_file_paths(
@@ -195,11 +199,12 @@ Recent Pull Requests (including closed/merged):
 
         file_contents = {}
         any_file_read = False
-        for file_path in finding.suspected_files:
-            if file_path != "(file path could not be confirmed)":
-                content = await gh_client.get_file_content(file_path)
+        valid_suspected_paths = [p for p in finding.suspected_files if p != "(file path could not be confirmed)"]
+        if valid_suspected_paths:
+            contents = await asyncio.gather(*(gh_client.get_file_content(path) for path in valid_suspected_paths))
+            for path, content in zip(valid_suspected_paths, contents):
                 if content:
-                    file_contents[file_path] = content
+                    file_contents[path] = content
                     any_file_read = True
 
         # Verification call

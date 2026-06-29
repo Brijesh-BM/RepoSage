@@ -1,3 +1,4 @@
+import asyncio
 from pydantic import BaseModel
 from typing import List
 from agent.tools.gemini_client import GeminiClient
@@ -64,12 +65,10 @@ async def run_understand(repo_data: dict,
                          github_client: GitHubClient) -> UnderstandOutput:
     client = GeminiClient()
     
-    # Identify and fetch key files
+    # Identify and fetch key files concurrently
     key_files_to_read = get_key_files(repo_data["file_tree"])
-    key_files = {}
-    for file_path in key_files_to_read:
-        content = await github_client.get_file_content(file_path)
-        key_files[file_path] = content
+    contents = await asyncio.gather(*(github_client.get_file_content(file_path) for file_path in key_files_to_read))
+    key_files = {path: content for path, content in zip(key_files_to_read, contents)}
         
     source_context = ""
     for path, content in key_files.items():

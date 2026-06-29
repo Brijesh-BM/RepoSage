@@ -1,0 +1,33 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+
+:root {
+  --void: #0A0C0F;
+  --surface: #111318;
+  --elevated: #1C2028;
+  --border: rgba(255,255,255,0.08);
+  --border-strong: rgba(255,255,255,0.15);
+
+  --signal: #00E5A0;
+  --signal-dim: rgba(0,229,160,0.12);
+  --signal-text: #00C88C;
+
+  --critical: #FF4D6D;
+  --critical-dim: rgba(255,77,109,0.12);
+
+  --warning: #FFB347;
+  --warning-dim: rgba(255,179,71,0.12);
+
+  --info: #4D9EFF;
+  --info-dim: rgba(77,158,255,0.12);
+
+  --muted: #6B7280;
+  --text: #F0F2F5;
+  --text-secondary: #9CA3AF;
+
+  --font-ui: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+  --radius: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+}

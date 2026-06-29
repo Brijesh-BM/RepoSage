@@ -9,15 +9,13 @@ class JobCreate(BaseModel):
     @field_validator("repo_url")
     @classmethod
     def validate_github_url(cls, v: str) -> str:
+        import re
         # Normalize and validate GitHub URL
         val = v.strip().rstrip("/")
-        if not val.startswith("https://github.com/") and not val.startswith("github.com/"):
-            raise ValueError("Must be a valid GitHub repository URL")
         
-        # Ensure it has at least org/repo structure
-        parts = val.split("github.com/")[-1].split("/")
-        if len(parts) < 2:
-            raise ValueError("URL must contain the organization/user and repository name")
+        match = re.search(r"(?:https?://)?(?:www\.)?github\.com/([^/]+)/([^/]+)", val)
+        if not match or not match.group(1) or not match.group(2):
+            raise ValueError("Must be a valid GitHub repository URL containing organization/user and repository name")
             
         return val
 
@@ -29,3 +27,5 @@ class JobResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+        

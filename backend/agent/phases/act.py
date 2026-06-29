@@ -1,3 +1,5 @@
+import asyncio
+import logging
 from pydantic import BaseModel
 from typing import List, Dict, Optional
 from agent.tools.github_client import GitHubClient
@@ -65,11 +67,12 @@ async def run_act(
     
     from agent.tools.github_client import parse_repo_url
     owner, repo_name = parse_repo_url(repo_url)
-    client.repo = client.client.get_repo(f"{owner}/{repo_name}")
+    client.repo = await asyncio.to_thread(client.client.get_repo, f"{owner}/{repo_name}")
     
-    for path in path_list:
-        content = await client.get_file_content(path)
-        fetched_files[path] = content[:8000] if content else ""
+    if path_list:
+        contents = await asyncio.gather(*(client.get_file_content(path) for path in path_list))
+        for path, content in zip(path_list, contents):
+            fetched_files[path] = content[:8000] if content else ""
 
     # Format file contents for prompt
     files_context = ""
