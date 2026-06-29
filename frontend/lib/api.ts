@@ -1,7 +1,7 @@
 const RAW_API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
 const API_URL = RAW_API_URL.replace(/\/$/, '');
 
-export async function createJob(repoUrl: string, githubToken?: string) {
+export async function createJob(repoUrl: string, githubToken?: string, signal?: AbortSignal) {
   const res = await fetch(`${API_URL}/v1/jobs`, {
     method: 'POST',
     headers: {
@@ -11,6 +11,7 @@ export async function createJob(repoUrl: string, githubToken?: string) {
       repo_url: repoUrl,
       github_token: githubToken || null,
     }),
+    signal,
   });
   
   if (!res.ok) {

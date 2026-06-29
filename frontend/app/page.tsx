@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { createJob } from "@/lib/api";
 import "@/styles/design-tokens.css";
 
 export default function Page() {
@@ -23,26 +24,14 @@ export default function Page() {
     const timeout = setTimeout(() => controller.abort(), 50000);
 
     try {
-      const res = await fetch("https://reposage-c236.onrender.com/analyze", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          repo_url: repoUrl.trim(),
-          github_token: githubToken.trim() || null,
-        }),
-        signal: controller.signal,
-      });
+      const data = await createJob(
+        repoUrl.trim(),
+        githubToken.trim() || undefined,
+        controller.signal
+      );
 
       clearTimeout(timeout);
 
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.detail || "Failed to analyze repository. Please check the URL.");
-      }
-
-      const data = await res.json();
       const jobId = data.job_id || data.id || data.jobId;
       if (!jobId) {
         throw new Error("No job ID returned from server.");

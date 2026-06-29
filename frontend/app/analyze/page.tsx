@@ -126,7 +126,11 @@ function AnalyzeContent() {
   useEffect(() => {
     if (!jobId) return;
 
-    const ws = new WebSocket(`wss://reposage-c236.onrender.com/ws/${jobId}`);
+    const RAW_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+    const API_URL = RAW_API_URL.replace(/\/$/, "");
+    const WS_URL = API_URL.replace(/^http/, "ws");
+
+    const ws = new WebSocket(`${WS_URL}/v1/ws/${jobId}`);
     wsRef.current = ws;
 
     ws.onopen = () => {

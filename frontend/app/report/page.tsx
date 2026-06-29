@@ -2,6 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
+import { getReport } from "@/lib/api";
 import Link from "next/link";
 import "@/styles/design-tokens.css";
 
@@ -229,11 +230,7 @@ function ReportContent() {
       return;
     }
 
-    fetch(`https://reposage-c236.onrender.com/report/${jobId}`)
-      .then((res) => {
-        if (res.ok) return res.json();
-        throw new Error("Failed to load report data from the server.");
-      })
+    getReport(jobId)
       .then((data) => {
         setReport(data);
       })
