@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import traceback
+import time
 from sqlalchemy.future import select
 from db.session import SessionLocal
 from models.job import Job
@@ -68,17 +69,27 @@ async def run_agent_job(job_id: str, github_token: str = None):
                 0.1
             )
 
+            logger.info("[PHASE START] Phase: observe")
+            start_observe = time.time()
             repo_data = await run_observe(job.repo_url, github_token, db)
+            duration_observe = time.time() - start_observe
+            logger.info(f"[PHASE END] Phase: observe, Duration: {duration_observe:.2f}s")
 
             logger.info("Phase 1: Observation completed successfully")
             
             # === PHASE 2: UNDERSTAND ===
             await write_step(db, job_id, "understand", "Analyzing repository architecture and tech stack...", "running", 0.3)
+            logger.info("[PHASE START] Phase: understand")
+            start_understand = time.time()
             understand_data = await run_understand(repo_data, github_client)
+            duration_understand = time.time() - start_understand
+            logger.info(f"[PHASE END] Phase: understand, Duration: {duration_understand:.2f}s")
             await write_step(db, job_id, "understand", f"Detected tech stack: {', '.join(understand_data.tech_stack)}", "done", 0.4)
             
             # === PHASE 3: REASON ===
             await write_step(db, job_id, "reason", "Analyzing open issues, commits, and reasoning about root causes...", "running", 0.5)
+            logger.info("[PHASE START] Phase: reason")
+            start_reason = time.time()
             reason_data = await run_reason(
                 repo_data,
                 tech_stack=understand_data.tech_stack,
@@ -86,16 +97,33 @@ async def run_agent_job(job_id: str, github_token: str = None):
                 repo_url=job.repo_url,
                 github_token=github_token
             )
+            duration_reason = time.time() - start_reason
+            logger.info(f"[PHASE END] Phase: reason, Duration: {duration_reason:.2f}s")
             await write_step(db, job_id, "reason", f"Completed issue correlation. Identified {len(reason_data.critical_issues)} critical issues.", "done", 0.6)
             
             # === PHASE 4: ACT ===
             await write_step(db, job_id, "act", "Fetching code files and generating targeted fixes and refactoring plans...", "running", 0.7)
+            logger.info("[PHASE START] Phase: act")
+            start_act = time.time()
             act_data = await run_act(job.repo_url, github_token, repo_data, reason_data)
+            duration_act = time.time() - start_act
+            logger.info(f"[PHASE END] Phase: act, Duration: {duration_act:.2f}s")
             await write_step(db, job_id, "act", "Generated engineering recommendations and test cases.", "done", 0.8)
             
             # === PHASE 5: REPORT ===
             await write_step(db, job_id, "report", "Compiling final engineering health report...", "running", 0.9)
-            report_id = await run_report(job_id, understand_data, reason_data, act_data, db)
+            logger.info("[PHASE START] Phase: report")
+            start_report = time.time()
+            try:
+                report_id = await asyncio.wait_for(
+                    run_report(job_id, understand_data, reason_data, act_data, db),
+                    timeout=120.0
+                )
+            except asyncio.TimeoutError:
+                logger.error(f"Timeout during final report generation for job {job_id}")
+                raise Exception("Final report generation timed out after 120 seconds")
+            duration_report = time.time() - start_report
+            logger.info(f"[PHASE END] Phase: report, Duration: {duration_report:.2f}s")
             await write_step(db, job_id, "report", "Engineering report compiled and persisted successfully.", "done", 1.0)
             
             # Update job status to done

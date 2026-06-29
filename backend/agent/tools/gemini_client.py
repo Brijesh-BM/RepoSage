@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+import time
 from openai import OpenAI
 import google.generativeai as genai
 
@@ -23,10 +24,15 @@ class GeminiClient:
         schema: Type[T],
         system_instruction: Optional[str] = None
     ) -> T:
+        prompt_chars = len(prompt) + (len(system_instruction) if system_instruction else 0)
+        estimated_tokens = prompt_chars // 4
+        
         logger.debug(f"GROQ_API_KEY set = {bool(settings.GROQ_API_KEY)}")
         
         # Try Groq first if key is available
         if settings.GROQ_API_KEY:
+            logger.info(f"[LLM START] Provider: Groq, Model: {settings.GROQ_MODEL}, Prompt Size: {prompt_chars} chars (~{estimated_tokens} tokens)")
+            start_time = time.time()
             try:
                 groq_client = OpenAI(
                     api_key=settings.GROQ_API_KEY,
@@ -61,9 +67,15 @@ class GeminiClient:
                 text_content = response.choices[0].message.content
                 if not text_content:
                     raise Exception("Empty response from Groq")
+                
+                duration = time.time() - start_time
+                response_size = len(text_content)
+                logger.info(f"[LLM END] Provider: Groq, Model: {settings.GROQ_MODEL}, Response Size: {response_size} chars, Duration: {duration:.2f}s")
                 return schema.model_validate_json(text_content)
             except Exception as e:
-                logger.warning(f"Groq API error (falling back to Gemini): {str(e)[:200]}")
+                duration = time.time() - start_time
+                logger.warning(f"[LLM ERROR] Provider: Groq, Model: {settings.GROQ_MODEL}, Duration: {duration:.2f}s, Error: {str(e)[:200]}")
+                logger.warning("Groq API error (falling back to Gemini)")
                 # Fall through to Gemini for ANY Groq error
                 pass
         
@@ -71,9 +83,12 @@ class GeminiClient:
         if not self.api_key:
             raise Exception("No API keys available.")
         
+        logger.info(f"[LLM START] Provider: Gemini, Model: {settings.GEMINI_MODEL}, Prompt Size: {prompt_chars} chars (~{estimated_tokens} tokens)")
+        start_time = time.time()
+        
         genai.configure(api_key=self.api_key)
         model = genai.GenerativeModel(
-            model_name="gemini-2.0-flash",
+            model_name=settings.GEMINI_MODEL,
             system_instruction=system_instruction
         )
         config = genai.GenerationConfig(
@@ -94,4 +109,8 @@ class GeminiClient:
         text_content = response.text
         if not text_content:
             raise Exception("Empty response from Gemini")
+            
+        duration = time.time() - start_time
+        response_size = len(text_content)
+        logger.info(f"[LLM END] Provider: Gemini, Model: {settings.GEMINI_MODEL}, Response Size: {response_size} chars, Duration: {duration:.2f}s")
         return schema.model_validate_json(text_content)

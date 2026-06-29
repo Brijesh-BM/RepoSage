@@ -6,6 +6,8 @@ from agent.tools.github_client import GitHubClient
 from agent.tools.gemini_client import GeminiClient
 from agent.phases.reason import ReasonOutput
 
+logger = logging.getLogger(__name__)
+
 class ActCriticalIssue(BaseModel):
     title: str
     severity: str
@@ -119,6 +121,88 @@ Analyze the codebase files and issues/risks details below to generate structural
 
 Codebase Files Context:
 {files_context if files_context else "No files fetched."}
+
+Critical Issues:
+{issues_context if issues_context else "No critical issues."}
+
+Security Risks:
+{risks_context if risks_context else "No security risks."}
+"""
+
+    # Performance audit: Truncate if token size exceeds threshold (estimated ~6000 tokens / 24,000 chars)
+    if len(prompt) > 24000:
+        logger.warning(f"Act Phase: Report prompt size ({len(prompt)} chars) exceeds threshold. Truncating codebase file context to 2000 chars per file...")
+        files_context = ""
+        for path, content in fetched_files.items():
+            files_context += f"=== FILE: {path} ===\n{content[:2000]}\n\n"
+        
+        prompt = f"""
+Analyze the codebase files and issues/risks details below to generate structural fixes and recommendations.
+
+Codebase Files Context:
+{files_context if files_context else "No files fetched."}
+
+Critical Issues:
+{issues_context if issues_context else "No critical issues."}
+
+Security Risks:
+{risks_context if risks_context else "No security risks."}
+"""
+
+    if len(prompt) > 24000:
+        logger.warning(f"Act Phase: Report prompt size ({len(prompt)} chars) still exceeds threshold. Further truncating file context to 500 chars per file...")
+        files_context = ""
+        for path, content in fetched_files.items():
+            files_context += f"=== FILE: {path} ===\n{content[:500]}\n\n"
+        
+        prompt = f"""
+Analyze the codebase files and issues/risks details below to generate structural fixes and recommendations.
+
+Codebase Files Context:
+{files_context if files_context else "No files fetched."}
+
+Critical Issues:
+{issues_context if issues_context else "No critical issues."}
+
+Security Risks:
+{risks_context if risks_context else "No security risks."}
+"""
+
+    if len(prompt) > 24000:
+        logger.warning(f"Act Phase: Report prompt size ({len(prompt)} chars) still exceeds threshold. Omiting file context...")
+        files_context = "File contents omitted to fit token threshold limit."
+        prompt = f"""
+Analyze the codebase files and issues/risks details below to generate structural fixes and recommendations.
+
+Codebase Files Context:
+{files_context}
+
+Critical Issues:
+{issues_context if issues_context else "No critical issues."}
+
+Security Risks:
+{risks_context if risks_context else "No security risks."}
+"""
+
+    if len(prompt) > 24000:
+        logger.warning(f"Act Phase: Report prompt size ({len(prompt)} chars) still exceeds threshold. Truncating issue details...")
+        issues_context = ""
+        for idx, issue in enumerate(reason_data.critical_issues):
+            issues_context += f"{idx+1}. {issue.title} ({issue.severity} severity)\n"
+            issues_context += f"   Reasoning: {issue.description[:400]}...\n"
+            issues_context += f"   Affected Files: {', '.join(issue.affected_files)}\n"
+            
+        risks_context = ""
+        for idx, risk in enumerate(reason_data.security_risks):
+            risks_context += f"{idx+1}. {risk.title} ({risk.severity} severity)\n"
+            risks_context += f"   Description: {risk.description[:400]}...\n"
+            risks_context += f"   Affected Files: {', '.join(risk.affected_files)}\n"
+
+        prompt = f"""
+Analyze the codebase files and issues/risks details below to generate structural fixes and recommendations.
+
+Codebase Files Context:
+{files_context}
 
 Critical Issues:
 {issues_context if issues_context else "No critical issues."}
